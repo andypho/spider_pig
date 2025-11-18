@@ -11,6 +11,12 @@ config :spider_pig,
   ecto_repos: [SpiderPig.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Configures the Crawl4AI
+config :spider_pig, SpiderPig.Crawl4Ai,
+  scheme: System.get_env("CRAWL4AI_SCHEME", "http"),
+  host: System.get_env("CRAWL4AI_HOST", "localhost"),
+  port: System.get_env("CRAWL4AI_PORT", "11235") |> String.to_integer()
+
 # Configures the endpoint
 config :spider_pig, SpiderPigWeb.Endpoint,
   url: [host: "localhost"],
