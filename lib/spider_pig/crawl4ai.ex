@@ -23,31 +23,47 @@ defmodule SpiderPig.Crawl4Ai do
 
   @spec get_request_headers() :: list({String.t(), String.t()})
   def get_request_headers() do
-    [{"content-type", "application/json"}]
+    %{"content-type" => ["application/json"]}
   end
 
   @spec get() :: {:ok, Req.Response.t()} | {:error, Exception.t()}
-  def get() do
-    Req.get(@url)
-  end
+  def get(), do: Req.get(@url)
 
   @spec get!() :: Req.Response.t()
-  def get!() do
-    Req.get!(@url)
-  end
+  def get!(), do: Req.get!(@url)
 
   @spec post(body :: map(), headers :: list()) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
   def post(body, headers \\ get_request_headers()) when is_map(body) do
     body = Jason.encode!(body)
-
     Req.post(@url, body: body, headers: headers)
   end
 
   @spec post!(body :: map(), headers :: list()) :: Req.Response.t()
   def post!(body, headers \\ get_request_headers()) when is_map(body) do
     body = Jason.encode!(body)
-
     Req.post!(@url, body: body, headers: headers)
   end
+
+  @spec crawl(body :: map(), headers :: list()) :: Req.Response.t()
+  def crawl(body, headers \\ get_request_headers()) when is_map(body) do
+    body = Jason.encode!(body)
+    Req.post(@url <> "/crawl", body: body, headers: headers)
+  end
+
+  @spec crawl!(body :: map(), headers :: list()) :: Req.Response.t()
+  def crawl!(body, headers \\ get_request_headers()) when is_map(body) do
+    body = Jason.encode!(body)
+    Req.post!(@url <> "/crawl", body: body, headers: headers)
+  end
+
+  @spec get_extracted_content(map) :: {:ok, list()} | {:error, String.t()}
+  def get_extracted_content(%{"results" => [%{"extracted_content" => ec} | _]}) do
+    case Jason.decode(ec) do
+      {:ok, term} -> {:ok, term}
+      _ -> {:error, "Failed to decode extracted content"}
+    end
+  end
+
+  def get_extracted_content(_), do: {:error, "Failed to get extracted content"}
 end

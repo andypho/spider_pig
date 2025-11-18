@@ -18,6 +18,16 @@ defmodule SpiderPigWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/crawlers", CrawlerLive.Index, :index
+    live "/crawlers/new", CrawlerLive.Form, :new
+    live "/crawlers/:id", CrawlerLive.Show, :show
+    live "/crawlers/:id/edit", CrawlerLive.Form, :edit
+
+    live "/users", UserLive.Index, :index
+    live "/users/new", UserLive.Form, :new
+    live "/users/:id", UserLive.Show, :show
+    live "/users/:id/edit", UserLive.Form, :edit
   end
 
   # Other scopes may use custom stacks.

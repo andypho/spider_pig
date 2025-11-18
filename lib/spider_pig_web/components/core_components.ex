@@ -90,6 +90,7 @@ defmodule SpiderPigWeb.CoreComponents do
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :string
+  attr :type, :string, default: "button"
   attr :variant, :string, values: ~w(primary)
   slot :inner_block, required: true
 
@@ -109,11 +110,144 @@ defmodule SpiderPigWeb.CoreComponents do
       """
     else
       ~H"""
-      <button class={@class} {@rest}>
+      <button class={@class} type={@type} {@rest}>
         {render_slot(@inner_block)}
       </button>
       """
     end
+  end
+
+  @doc """
+  Renders a button group.
+
+  ## Examples
+
+      <.button_group />
+  """
+  attr :label, :string, default: nil
+  attr :options, :list
+
+  attr :container_class, :string,
+    default: "fieldset mb-2",
+    doc: "the container class to use over defaults"
+
+  def button_group(assigns) do
+    ~H"""
+    <div class={@container_class}>
+      <span :if={@label} class="label mb-1">{@label}</span>
+      <div class="join">
+        <%= for option <- @options do %>
+          <input class="join-item btn" type="radio" name="options" aria-label={option} />
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a divider on vertical or horizontal.
+
+  ## Examples
+
+      <.divider />
+      <.divider>OR</.divider>
+      <.divider type="horizontal" />
+  """
+  attr :type, :string, values: ~w(horizontal)
+  slot :inner_block
+
+  def divider(assigns) do
+    variants = %{nil => "divider", "horizontal" => "divider divider-horizontal"}
+
+    assigns =
+      assign_new(assigns, :class, fn ->
+        [Map.fetch!(variants, assigns[:variant])]
+      end)
+
+    if !Enum.empty?(assigns[:inner_block]) do
+      ~H"""
+      <div class={@class}>
+        {render_slot(@inner_block)}
+      </div>
+      """
+    else
+      ~H"""
+      <div class={@class} />
+      """
+    end
+  end
+
+  @doc """
+  Renders a card.
+
+  ## Examples
+
+      <.card>
+        <h1>Content</h1>
+      </.card>
+  """
+  attr :class, :string
+  slot :inner_block, required: true
+
+  def card(assigns) do
+    ~H"""
+    <div class={["card bg-base-100 mb-4 shadow-md", @class]}>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a status indicator.
+
+  ## Examples
+
+      <.status type="info" />
+      <.status type="success" />
+  """
+  attr :type, :string, values: ~w(primary secondary accent neutral info success warning error)
+
+  def status(%{type: type} = assigns) do
+    case type do
+      type when type in ~w(primary secondary accent neutral) ->
+        ~H"""
+        <div aria-label="status" class={"status status-#{@type}"}></div>
+        """
+
+      type when type in ~w(info success warning error) ->
+        ~H"""
+        <div aria-label={@type} class={"status status-#{@type}"}></div>
+        """
+
+      _ ->
+        ~H"""
+        <div class="status"></div>
+        """
+    end
+  end
+
+  @doc """
+  Renders a button with a tooltip.
+
+  ## Examples
+
+      <.tooltip title="Delete Node" type="button" phx-click="delete_node">
+        <.icon name="hero-minus-circle" class="size-5" />
+      </.tooltip>
+  """
+  attr :rest, :global
+  attr :class, :string
+  attr :title, :string
+  slot :inner_block, required: true
+
+  def tooltip(%{rest: _} = assigns) do
+    ~H"""
+    <div class={if assigns[:class], do: "tooltip #{@class}", else: "tooltip"} data-tip={@title}>
+      <.button {@rest}>
+        {render_slot(@inner_block)}
+      </.button>
+    </div>
+    """
   end
 
   @doc """
@@ -160,6 +294,11 @@ defmodule SpiderPigWeb.CoreComponents do
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
+
+  attr :container_class, :string,
+    default: "fieldset mb-2",
+    doc: "the container class to use over defaults"
+
   attr :class, :string, default: nil, doc: "the input class to use over defaults"
   attr :error_class, :string, default: nil, doc: "the input error class to use over defaults"
 
@@ -183,9 +322,10 @@ defmodule SpiderPigWeb.CoreComponents do
       assign_new(assigns, :checked, fn ->
         Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
       end)
+      |> hide_input()
 
     ~H"""
-    <div class="fieldset mb-2">
+    <div class={@container_class}>
       <label>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <span class="label">
@@ -206,8 +346,10 @@ defmodule SpiderPigWeb.CoreComponents do
   end
 
   def input(%{type: "select"} = assigns) do
+    assigns = hide_input(assigns)
+
     ~H"""
-    <div class="fieldset mb-2">
+    <div class={@container_class}>
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <select
@@ -227,8 +369,10 @@ defmodule SpiderPigWeb.CoreComponents do
   end
 
   def input(%{type: "textarea"} = assigns) do
+    assigns = hide_input(assigns)
+
     ~H"""
-    <div class="fieldset mb-2">
+    <div class={@container_class}>
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <textarea
@@ -248,8 +392,10 @@ defmodule SpiderPigWeb.CoreComponents do
 
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
+    assigns = hide_input(assigns)
+
     ~H"""
-    <div class="fieldset mb-2">
+    <div class={@container_class}>
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <input
@@ -268,6 +414,12 @@ defmodule SpiderPigWeb.CoreComponents do
     </div>
     """
   end
+
+  defp hide_input(%{rest: %{hidden: true}} = assigns),
+    do: assign(assigns, :container_class, "hidden")
+
+  defp hide_input(%{hidden: true} = assigns), do: assign(assigns, :container_class, "hidden")
+  defp hide_input(assigns), do: assigns
 
   # Helper used by inputs to generate form errors
   defp error(assigns) do
@@ -322,6 +474,7 @@ defmodule SpiderPigWeb.CoreComponents do
     doc: "the function for mapping each row before calling the :col and :action slots"
 
   slot :col, required: true do
+    attr :class, :string
     attr :label, :string
   end
 
@@ -348,7 +501,9 @@ defmodule SpiderPigWeb.CoreComponents do
           <td
             :for={col <- @col}
             phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
+            class={
+              [if(@row_click, do: "hover:cursor-pointer"), col[:class]] |> Enum.reject(&is_nil/1)
+            }
           >
             {render_slot(col, @row_item.(row))}
           </td>

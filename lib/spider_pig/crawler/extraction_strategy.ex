@@ -6,6 +6,8 @@ defmodule SpiderPig.Crawler.ExtractionStrategy do
     Crawler
   }
 
+  @type t :: %__MODULE__{}
+
   @strategies [
     json_css_extraction_strategy: "JsonCssExtractionStrategy"
   ]
@@ -14,7 +16,7 @@ defmodule SpiderPig.Crawler.ExtractionStrategy do
     belongs_to :node, Crawler.Node
 
     field :type, Ecto.Enum, values: @strategies
-    has_many :schemas, Crawler.ExtractionStrategy.Schema
+    has_one :schema, Crawler.ExtractionStrategy.Schema
 
     timestamps(type: :utc_datetime)
   end
@@ -24,10 +26,12 @@ defmodule SpiderPig.Crawler.ExtractionStrategy do
     module
     |> cast(params, [:type])
     |> validate_required([:type])
+    |> cast_assoc(:schema)
   end
 
-  @spec get_all_type() :: list(String.t())
-  def get_all_type() do
-    Keyword.values(@strategies)
-  end
+  @spec get_all_type() :: list({atom(), String.t()})
+  def get_all_type(), do: @strategies
+
+  @spec type_to_string(atom()) :: String.t()
+  def type_to_string(type) when is_atom(type), do: Keyword.get(@strategies, type)
 end

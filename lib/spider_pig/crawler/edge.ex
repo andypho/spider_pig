@@ -6,6 +6,8 @@ defmodule SpiderPig.Crawler.Edge do
     Crawler
   }
 
+  @type t :: %__MODULE__{}
+
   schema "edges" do
     belongs_to :source, Crawler.Node
     belongs_to :target, Crawler.Node
