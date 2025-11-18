@@ -35,5 +35,5 @@ spider_pig-*.tar
 npm-debug.log
 /assets/node_modules/
 
-# vscode
+# Ignore vscode
 .vscode
