@@ -7,6 +7,13 @@
 # General application configuration
 import Config
 
+config :spider_pig, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: SpiderPig.Repo,
+  plugins: [Oban.Plugins.Pruner]
+
 config :spider_pig,
   ecto_repos: [SpiderPig.Repo],
   generators: [timestamp_type: :utc_datetime]

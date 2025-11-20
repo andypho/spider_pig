@@ -11,6 +11,7 @@ defmodule SpiderPig.Application do
       SpiderPigWeb.Telemetry,
       SpiderPig.Repo,
       {DNSCluster, query: Application.get_env(:spider_pig, :dns_cluster_query) || :ignore},
+      {Oban, Application.fetch_env!(:spider_pig, Oban)},
       {Phoenix.PubSub, name: SpiderPig.PubSub},
       # Start a worker by calling: SpiderPig.Worker.start_link(arg)
       # {SpiderPig.Worker, arg},

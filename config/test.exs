@@ -1,4 +1,5 @@
 import Config
+config :spider_pig, Oban, testing: :manual
 
 # Configure your database
 #
