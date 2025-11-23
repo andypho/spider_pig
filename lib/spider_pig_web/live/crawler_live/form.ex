@@ -337,9 +337,10 @@ defmodule SpiderPigWeb.CrawlerLive.Form do
      |> assign(:form, to_form(crawler))}
   end
 
-  # TODO
-  def handle_event("validate", _params, socket) do
-    {:noreply, socket}
+  # FIXME
+  def handle_event("validate", %{"crawler" => crawler_params}, socket) do
+    changeset = Crawler.change_crawler(socket.assigns.crawler, crawler_params)
+    {:noreply, socket |> assign(form: to_form(changeset, action: :validate))}
   end
 
   # TODO
